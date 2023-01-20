@@ -1,0 +1,136 @@
+import { Request, Response } from "express";
+import { BadRequestError } from "../errors/bad-request.error";
+import { Task } from "../models/Task";
+/**
+ * Route: /create-task
+ * Description: API route that creates a  kanban task
+ * Method: POST
+ * Access: Private
+ * */
+
+export const createTask = async (req: Request, res: Response) => {
+	const { title, description, subtasks, status } = req.body;
+
+	// check for duplicate titles
+	const duplicate = await Task.findOne({ title }).collation({ locale: "en", strength: 2 }).lean().exec();
+
+	if (duplicate) {
+		throw new BadRequestError("Task title taken, try again!");
+	}
+
+	const task = await Task.create({ title, description, subtasks, status });
+
+	if (task) {
+		// Created
+		return res.status(201).json({ message: `${title} created` });
+	} else {
+		return res.status(400).json({ message: "Invalid task data received" });
+	}
+};
+
+/**
+ * Route: /get-tasks
+ * Description: API route that gets a  kanban tasks
+ * Method: GET
+ * Access: Private
+ * */
+
+export const getTasks = async (req: Request, res: Response) => {
+	const boards = await Task.find().lean();
+	// Handle error if there are no board in the db
+	if (!boards) {
+		throw new BadRequestError("No tasks found!");
+	}
+	// return the boards
+	res.status(200).send(boards);
+};
+
+/**
+ * Route: /get-tasks by status
+ * Description: API route that gets a  kanban tasks by columnId
+ * Method: GET
+ * Access: Private
+ * */
+
+export const getTaskByColumnId = async (req: Request, res: Response) => {
+	const { status } = req.body;
+
+	if (!status) {
+		throw new BadRequestError("Status fiels is required!!!!");
+	}
+	const boards = await Task.find({ status }).lean().exec();
+	// Handle error if there are no board in the db
+	if (!boards) {
+		throw new BadRequestError("No tasks found!");
+	}
+	// return the boards
+	res.status(200).send(boards);
+};
+
+/**
+ * Route: /update-task
+ * Description: API route that updates a  kanban task
+ * Method: Patch
+ * Access: Private
+ * */
+
+export const updateTask = async (req: Request, res: Response) => {
+	const { title, description, subtasks, status, id } = req.body;
+
+	// Confirm task exists to update
+	const task = await Task.findById(id).exec();
+
+	if (!task) {
+		throw new BadRequestError("Task not found!!");
+	}
+
+	// Check for duplicate title
+	const duplicate = await Task.findOne({ title }).collation({ locale: "en", strength: 2 }).lean().exec();
+
+	// Allow renaming of the original task
+	if (duplicate && duplicate?._id.toString() !== id) {
+		throw new BadRequestError("Duplicate task name");
+	}
+
+	task.title = title;
+	task.description = description;
+	task.subtasks = subtasks;
+	task.status = status;
+
+	const updatedBoard = await task.save();
+
+	res.json({ message: `${updatedBoard.title} updated successfully!!!` });
+};
+
+/**
+ * Route: /delete-task
+ * Description: API route that delete a  kanban task
+ * Method: DELETE
+ * Access: Private
+ * */
+
+type DeleteResults = {
+	title: string;
+	_id: string;
+};
+export const deleteTask = async (req: Request, res: Response) => {
+	const { id } = req.body;
+
+	// confirm data
+	if (!id) {
+		throw new BadRequestError("Task id is required!!");
+	}
+
+	// get board
+	const task = await Task.findById(id).exec();
+
+	if (!task) {
+		throw new BadRequestError("Task does not exist!!");
+	}
+	// detele
+	const result: DeleteResults = await task.deleteOne();
+
+	const reply = `Task ${result.title} with id ${result._id} deleted successfully!!!`;
+
+	res.json({ message: reply });
+};
