@@ -4,4 +4,5 @@ export const allowedOrigins = [
 	"https://kanban-sm.vercel.app/",
 	"https://kanban-fronend-mentor.vercel.app/",
 	"https://vercel.com/",
+	"*",
 ];
