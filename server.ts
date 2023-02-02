@@ -31,7 +31,7 @@ app.use(express.json());
 app.use(morgan("common"));
 app.use(bodyParser.json({ limit: "30mb", extended: true } as OptionsJson));
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
 // routes
 app.get("/", (req, res) => {
