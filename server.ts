@@ -16,6 +16,8 @@ import { boardRouter } from "./src/routes/boardRoutes";
 import { taskRouter } from "./src/routes/taskRoutes";
 import { corsOptions } from "./src/config/corsOptions";
 
+const PORT = process.env.PORT || 5050;
+
 interface OptionsJson {
 	limit: string;
 	extended: boolean;
@@ -50,6 +52,6 @@ mongoose.set("strictQuery", false);
 mongoConnect();
 
 // Start the server
-app.listen(5050, function () {
-	console.log("App is listening on port 5050!");
+app.listen(PORT, () => {
+	console.log(`Server running on port ${PORT}`);
 });
