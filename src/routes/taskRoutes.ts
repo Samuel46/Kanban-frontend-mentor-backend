@@ -17,8 +17,7 @@ router
 		createTask
 	)
 	.get("/get-tasks", getTasks)
-	.get("/task-column", getTaskByColumnId)
 	.patch("/update-task", updateTask)
-	.delete("/delete-task", deleteTask);
+	.delete("/delete-task/:id", deleteTask);
 
 export { router as taskRouter };

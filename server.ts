@@ -1,9 +1,11 @@
-require("dotenv").config();
 import express from "express";
 import "express-async-errors";
+import bodyParser from "body-parser";
 import morgan from "morgan";
 import mongoose from "mongoose";
-import { json } from "body-parser";
+import helmet from "helmet";
+import dotenv from "dotenv";
+import cors from "cors";
 
 //
 import { mongoConnect } from "./src/config/mongoConnect";
@@ -12,22 +14,29 @@ import { NotFoundError } from "./src/errors/not-found-error";
 // routes
 import { boardRouter } from "./src/routes/boardRoutes";
 import { taskRouter } from "./src/routes/taskRoutes";
+import { corsOptions } from "./src/config/corsOptions";
 
-// connect to the database
-mongoose.set("strictQuery", false);
-mongoConnect();
+interface OptionsJson {
+	limit: string;
+	extended: boolean;
+}
 
-// Create a new express app instance
+dotenv.config();
 const app = express();
-// Use Morgan to log the request and response bodies for each request
-app.use(morgan(":method :url :status :res[content-length] - :response-time ms"));
-
-// bodyparser
-app.use(json());
+app.use(express.json());
+app.use(helmet());
+app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
+app.use(morgan("common"));
+app.use(bodyParser.json({ limit: "30mb", extended: true } as OptionsJson));
+app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
+app.use(cors(corsOptions));
 
 // routes
-app.use("/board", boardRouter);
-app.use("/task", taskRouter);
+app.get("/", (req, res) => {
+	res.send("hello word");
+});
+app.use(boardRouter);
+app.use(taskRouter);
 
 // 404 route
 app.all("*", async () => {
@@ -36,7 +45,11 @@ app.all("*", async () => {
 
 app.use(errorHandler);
 
+// connect to the database
+mongoose.set("strictQuery", false);
+mongoConnect();
+
 // Start the server
-app.listen(3000, function () {
-	console.log("App is listening on port 3000!");
+app.listen(5050, function () {
+	console.log("App is listening on port 5050!");
 });

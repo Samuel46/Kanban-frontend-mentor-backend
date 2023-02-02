@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { BadRequestError } from "../errors/bad-request.error";
+import { Board } from "../models/Board";
 import { Task } from "../models/Task";
 /**
  * Route: /create-task
@@ -22,7 +23,7 @@ export const createTask = async (req: Request, res: Response) => {
 
 	if (task) {
 		// Created
-		return res.status(201).json({ message: `${title} created` });
+		return res.status(201).send(task);
 	} else {
 		return res.status(400).json({ message: "Invalid task data received" });
 	}
@@ -53,12 +54,12 @@ export const getTasks = async (req: Request, res: Response) => {
  * */
 
 export const getTaskByColumnId = async (req: Request, res: Response) => {
-	const { status } = req.body;
+	const { columnId } = req.params;
 
-	if (!status) {
+	if (!columnId) {
 		throw new BadRequestError("Status fiels is required!!!!");
 	}
-	const boards = await Task.find({ status }).lean().exec();
+	const boards = await Task.find({ columnId }).lean();
 	// Handle error if there are no board in the db
 	if (!boards) {
 		throw new BadRequestError("No tasks found!");
@@ -99,7 +100,7 @@ export const updateTask = async (req: Request, res: Response) => {
 
 	const updatedBoard = await task.save();
 
-	res.json({ message: `${updatedBoard.title} updated successfully!!!` });
+	res.status(200).send(updatedBoard);
 };
 
 /**
@@ -114,7 +115,7 @@ type DeleteResults = {
 	_id: string;
 };
 export const deleteTask = async (req: Request, res: Response) => {
-	const { id } = req.body;
+	const { id } = req.params;
 
 	// confirm data
 	if (!id) {

@@ -49,6 +49,25 @@ export const getBoards = async (req: Request, res: Response) => {
 };
 
 /**
+ * Route: /get-board-by-id
+ * Description: API route that gets a  kanban boards by id
+ * Method: GET
+ * Access: Private
+ * */
+export const getBoardById = async (req: Request, res: Response) => {
+	const { id } = req.params;
+
+	const board = await Board.findById({ id }).lean();
+
+	// Handle error if there are no board in the db
+	if (!board) {
+		throw new BadRequestError("Board does not exist");
+	}
+	// return the board
+	res.status(200).send(board);
+};
+
+/**
  * Route: /delete-board
  * Description: API route that delete a  kanban board
  * Method: DELETE
@@ -60,7 +79,7 @@ type DeleteResults = {
 	_id: string;
 };
 export const deleteBoard = async (req: Request, res: Response) => {
-	const { id } = req.body;
+	const { id } = req.params;
 
 	// confirm data
 	if (!id) {
@@ -89,7 +108,7 @@ export const deleteBoard = async (req: Request, res: Response) => {
  * */
 
 export const updateBoard = async (req: Request, res: Response) => {
-	const { name, colunms, id } = req.body;
+	const { name, columns, id } = req.body;
 
 	// Confirm board exists to update
 	const board = await Board.findById(id).exec();
@@ -107,9 +126,9 @@ export const updateBoard = async (req: Request, res: Response) => {
 	}
 
 	board.name = name;
-	board.columns = colunms;
+	board.columns = columns;
 
 	const updatedBoard = await board.save();
 
-	res.json({ message: `${updatedBoard.name} updated successfully!!!` });
+	res.status(200).send(updatedBoard);
 };
