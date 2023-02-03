@@ -2,7 +2,7 @@ import { Router } from "express";
 import { body } from "express-validator";
 //
 import { validateRequest } from "../middleware/validate-request";
-import { createTask, deleteTask, getTaskByColumnId, getTasks, updateTask } from "../controllers/taskControllers";
+import { createTask, deleteTask, getTaskByColumnId, getTasks, updateSubTask, updateTask } from "../controllers/taskControllers";
 
 const router = Router();
 
@@ -18,6 +18,7 @@ router
 	)
 	.get("/get-tasks", getTasks)
 	.patch("/update-task", updateTask)
+	.patch("/update-subtask", updateSubTask)
 	.delete("/delete-task/:id", deleteTask);
 
 export { router as taskRouter };

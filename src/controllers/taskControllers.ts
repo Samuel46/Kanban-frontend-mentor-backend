@@ -104,6 +104,47 @@ export const updateTask = async (req: Request, res: Response) => {
 };
 
 /**
+ * Route: /update-subtask
+ * Description: API route that updates a  kanban subTask
+ * Method: Patch
+ * Access: Private
+ * */
+
+type Props = {
+	complete: boolean;
+	title?: string | undefined;
+};
+
+interface SubTask extends Props {
+	_id: string;
+}
+
+export const updateSubTask = async (req: Request, res: Response) => {
+	const { subTaskId, taskId, status } = req.body;
+
+	// Confirm task exists to update
+	const task = await Task.findById(taskId).exec();
+
+	if (!task) {
+		throw new BadRequestError("Task not found!!");
+	}
+
+	// find the subtask to update using the subTaskId
+	const subTask = task.subtasks.find((subtask: SubTask | any) => subtask._id.toString() === subTaskId);
+
+	if (!subTask) {
+		throw new BadRequestError("Subtask not found!!");
+	}
+
+	// update the subtask
+	subTask.complete = status;
+
+	const updatedSubTask = await task.save();
+
+	res.status(200).send(updatedSubTask);
+};
+
+/**
  * Route: /delete-task
  * Description: API route that delete a  kanban task
  * Method: DELETE
